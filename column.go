@@ -16,6 +16,7 @@ type Column struct {
 	focus     bool
 	width     int
 	height    int
+	title     string
 }
 
 func (c *Column) Focus() {
