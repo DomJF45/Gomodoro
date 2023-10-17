@@ -14,6 +14,7 @@ type Board struct {
 	loaded   bool
 	focused  Rotation
 	cols     []Column
+	tabs     []Tab
 	quitting bool
 }
 
@@ -28,13 +29,16 @@ func NewBoard() Board {
 
 func (b *Board) InitTimers() {
 	b.cols = []Column{
-		NewColumn(pomodoro, time.Minute*25),
-		NewColumn(short_break, time.Minute*5),
-		NewColumn(long_break, time.Minute*15),
+		NewColumn(pomodoro, time.Minute*25, "Pomodoro"),
+		NewColumn(short_break, time.Minute*5, "Short Break"),
+		NewColumn(long_break, time.Minute*15, "Long Break"),
 	}
-	b.cols[pomodoro].title = "Pomodoro"
-	b.cols[short_break].title = "Short Break"
-	b.cols[long_break].title = "Long Break"
+
+	b.tabs = []Tab{
+		NewTab("Pomodoro", true),
+		NewTab("Short Break", false),
+		NewTab("Long Break", false),
+	}
 }
 
 func (b Board) Init() tea.Cmd {
@@ -50,13 +54,22 @@ func (b Board) View() string {
 		return "loading..."
 	}
 
-	board := lipgloss.JoinHorizontal(
-		lipgloss.Center,
-		b.cols[pomodoro].View(),
-		b.cols[short_break].View(),
-		b.cols[long_break].View(),
+	tabs := lipgloss.JoinHorizontal(
+		lipgloss.Left,
+		b.tabs[pomodoro].View(),
+		b.tabs[short_break].View(),
+		b.tabs[long_break].View(),
 	)
 
+	board := lipgloss.JoinVertical(
+		lipgloss.Center,
+		lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("202")).Render("GOMODORO!!! // ポモドーロ!!!"),
+		lipgloss.JoinVertical(
+			lipgloss.Center,
+			tabs,
+			b.cols[b.focused].View(),
+		),
+	)
 	return lipgloss.JoinVertical(lipgloss.Left, board, b.help.View(Keys))
 }
 
@@ -80,13 +93,13 @@ func (b Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			b.quitting = true
 			return b, tea.Quit
 		case key.Matches(msg, Keys.right):
-			b.cols[b.focused].Blur()
+			b.tabs[b.focused].Blur()
 			b.focused = b.focused.GetNext()
-			b.cols[b.focused].Focus()
+			b.tabs[b.focused].Focus()
 		case key.Matches(msg, Keys.left):
-			b.cols[b.focused].Blur()
+			b.tabs[b.focused].Blur()
 			b.focused = b.focused.GetPrev()
-			b.cols[b.focused].Focus()
+			b.tabs[b.focused].Focus()
 		}
 	}
 	res, cmd := b.cols[b.focused].Update(msg)

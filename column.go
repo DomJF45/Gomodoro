@@ -31,7 +31,7 @@ func (c *Column) IsFocused() bool {
 	return c.focus
 }
 
-func NewColumn(rotation Rotation, st time.Duration) Column {
+func NewColumn(rotation Rotation, st time.Duration, title string) Column {
 	var focus bool
 	if rotation == pomodoro {
 		focus = true
@@ -41,6 +41,7 @@ func NewColumn(rotation Rotation, st time.Duration) Column {
 		timer:     timer.NewWithInterval(st, time.Second),
 		rotation:  rotation,
 		focus:     focus,
+		title:     title,
 	}
 }
 
@@ -51,6 +52,8 @@ func (c Column) Init() tea.Cmd {
 func (c Column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		c.SetSize(msg.Width, 20)
 	case timer.TickMsg:
 		var cmd tea.Cmd
 		c.timer, cmd = c.timer.Update(msg)
@@ -76,17 +79,26 @@ func (c Column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (c Column) View() string {
-	return c.GetStyle().Render(c.timer.View())
+	return c.GetStyle().Render("Time Remaining: ", lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#04b575")).Render(c.timer.View()))
 }
 
-func (c *Column) GetStyle() lipgloss.Style {
-	if c.focus == true {
-		return lipgloss.NewStyle().Width(15).Height(5).Align(lipgloss.Center, lipgloss.Center).BorderStyle(lipgloss.NormalBorder()).BorderForeground(lipgloss.Color("69"))
+func (c *Column) GetTextStyle() lipgloss.Style {
+	if c.focus {
+		return lipgloss.NewStyle().Bold(true).
+			Foreground(lipgloss.Color("#FAFAFA")).
+			Background(lipgloss.Color("#7D56F4")).MarginBottom(10)
 	} else {
-		return lipgloss.NewStyle().Width(15).Height(5).Align(lipgloss.Center, lipgloss.Center).BorderStyle(lipgloss.HiddenBorder())
+		return lipgloss.NewStyle().Bold(true).
+			Foreground(lipgloss.Color("#FAFAFA")).
+			Background(lipgloss.Color("#7D56F4")).MarginBottom(10)
 	}
 }
 
-func (c *Column) SetSize(width int) {
+func (c *Column) GetStyle() lipgloss.Style {
+	return lipgloss.NewStyle().Width(c.width).Height(c.height).Align(lipgloss.Top, lipgloss.Left).BorderStyle(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("202"))
+}
+
+func (c *Column) SetSize(width, height int) {
 	c.width = width / margin
+	c.height = height / margin
 }
