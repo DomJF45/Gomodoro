@@ -91,7 +91,10 @@ func (c Column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		c.timer, cmd = c.timer.Update(msg)
 		return c, cmd
 	case timer.TimeoutMsg:
-		return c, c.MoveToNext(cmd)
+		var cmd tea.Cmd
+		c.timer.Timeout = c.startTime
+		cmd = c.MoveToNext(cmd)
+		return c, cmd
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, Keys.reset):
