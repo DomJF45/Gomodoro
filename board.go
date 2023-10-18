@@ -16,14 +16,16 @@ type Board struct {
 	cols     []Column
 	tabs     []Tab
 	quitting bool
+	interval int
 }
 
 func NewBoard() Board {
 	help := help.New()
 	help.ShowAll = true
 	return Board{
-		help:    help,
-		focused: pomodoro,
+		help:     help,
+		focused:  pomodoro,
+		interval: 0,
 	}
 }
 
@@ -87,6 +89,20 @@ func (b Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		b.loaded = true
 		return b, tea.Batch(cmds...)
+	case TimeOut:
+		b.interval++
+		b.tabs[b.focused].Blur()
+		if b.interval == 6 {
+			b.focused = b.focused.GetNext()
+			b.interval = 0
+		} else if b.interval == 5 {
+			b.focused = long_break
+		} else if b.focused == pomodoro {
+			b.focused = b.focused.GetNext()
+		} else {
+			b.focused = b.focused.GetPrev()
+		}
+		b.tabs[b.focused].Focus()
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, Keys.quit):
@@ -100,6 +116,9 @@ func (b Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			b.tabs[b.focused].Blur()
 			b.focused = b.focused.GetPrev()
 			b.tabs[b.focused].Focus()
+		case key.Matches(msg, Keys.help):
+			Keys.FullHelp()
+
 		}
 	}
 	res, cmd := b.cols[b.focused].Update(msg)

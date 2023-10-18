@@ -18,7 +18,7 @@ const (
 	long_break
 )
 
-const margin = 5
+const margin = 3
 
 func (r Rotation) GetNext() Rotation {
 	if r == long_break {
