@@ -31,9 +31,9 @@ func NewBoard() Board {
 
 func (b *Board) InitTimers() {
 	b.cols = []Column{
-		NewColumn(pomodoro, time.Second*25, "Pomodoro"),
-		NewColumn(short_break, time.Second*5, "Short Break"),
-		NewColumn(long_break, time.Second*15, "Long Break"),
+		NewColumn(pomodoro, time.Minute*25, "Pomodoro"),
+		NewColumn(short_break, time.Minute*5, "Short Break"),
+		NewColumn(long_break, time.Minute*15, "Long Break"),
 	}
 
 	b.tabs = []Tab{
